@@ -1,0 +1,14 @@
+mysql:
+  user: agent-member
+  password: ybigta2025!
+  host: 138.3.216.233
+  port: 3306
+  database: alpha_agent
+  url: mysql+pymysql://agent-member:ybigta2025!@138.3.216.233:3306/alpha_agent
+
+mongo:
+  url: mongodb+srv://chaerim:ybigta2024!@cluster0.ah9w0.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0
+
+upstage:
+  api_key: up_QIKDAhc7G832Ry5yZRBg1QHnhQKxf
+
