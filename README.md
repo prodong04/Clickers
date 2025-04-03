@@ -1,22 +1,21 @@
 # 🌟 Clickers / Click Us 🌟
 
 # 𝔸𝕝𝕡𝕙𝕒 𝔸𝕘𝕖𝕟𝕥
-![화면 기록 2025-04-04 오전 4 26 58](https://github.com/user-attachments/assets/84b6e9e3-458e-46b0-b8b4-63d34ef9d284)
-
+![Demo](https://github.com/user-attachments/assets/84b6e9e3-458e-46b0-b8b4-63d34ef9d284)
 
 ---
 
 ## 📌 Introduction
 
-Clickers는 데모 시연을 위한 인프라 코드로, **Streamlit (Frontend)** 와 **FastAPI (Backend)** 로 구성되어 있습니다.
+Clickers is an infrastructure code for demonstration purposes, consisting of **Streamlit (Frontend)** and **FastAPI (Backend)**.
 
 ---
 
 ## 🚀 Quick Start
 
-### ✅ 환경 세팅 (Python 3.10 / Conda 환경)
+### ✅ Environment Setup (Python 3.10 / Conda Environment)
 
-1. **Conda 가상환경 설치 및 활성화**
+1. **Create and activate Conda virtual environment**
 
 ```bash
 conda create -n infra python=3.10
@@ -24,42 +23,42 @@ conda activate infra
 pip install -r requirements.txt
 ```
 
-2. **환경 변수 설정 (.env 파일 생성)**
+2. **Set environment variables (.env file)**
 
 ```plaintext
 EMAIL_ADDRESS=your_email@gmail.com
 APP_PASSWORD=your_16_digit_app_password
 ```
 
-3. **설정 파일 배치 (config/config.yaml)**
+3. **Place the configuration file (config/config.yaml)**
 
 ---
 
-### 🔥 실행 방법
+### 🔥 How to Run
 
-#### Backend 실행하기 (FastAPI)
+#### Run Backend (FastAPI)
 
 ```bash
 uvicorn backend.main:app --reload
 ```
 
-FastAPI 서버가 실행되며 기본적으로 [http://127.0.0.1:8000](http://127.0.0.1:8000) 에서 동작합니다.
+The FastAPI server will run at [http://127.0.0.1:8000](http://127.0.0.1:8000) by default.
 
-#### Frontend 실행하기 (Streamlit)
+#### Run Frontend (Streamlit)
 
 ```bash
 streamlit run frontend/main.py
 ```
 
-Streamlit 서버가 실행되며 기본적으로 [http://localhost:8501](http://localhost:8501) 에서 동작합니다.
+The Streamlit server will run at [http://localhost:8501](http://localhost:8501) by default.
 
 ---
 
-### ⚠️ 주의사항
+### ⚠️ Notes
 
-이 프로젝트는 데모용 인프라 설정이므로, 모델(에이전트) 실행 파일과 서버, 프론트엔드는 모두 동일한 로컬 서버에서 실행되어야 합니다.
+This project is set up for demonstration purposes, so the model (agent), server, and frontend must all be run on the same local server.
 
-클라우드 또는 다른 서버를 사용하려면 Public IP 및 포트 설정이 필요합니다.
+If you want to use a cloud or another server, you need to configure the Public IP and ports accordingly.
 
 ---
 
@@ -82,21 +81,20 @@ Streamlit 서버가 실행되며 기본적으로 [http://localhost:8501](http://
 pip install -r requirements.txt
 ```
 
-requirements.txt 파일에는 프로젝트에서 사용하는 모든 패키지가 포함되어 있습니다.
+The requirements.txt file includes all the packages used in the project.
 
 ---
 ## 🌟 Contributors
 
-이 프로젝트는 연세대학교 X Upstage Agent Hackathon 딸깍원정대 팀의 프로젝트입니다.
+This project is part of the Yonsei University X Upstage Agent Hackathon Team "Clickers."  
 
-아래는 프로젝트 기여자들입니다. 모두에게 감사드립니다! 💪🚀
+Here are the contributors to this project. Thank you all! 💪🚀
 
-| GitHub ID                               | 역할                |
+| GitHub ID                                 | Role             |
 | --------------------------------------- | ----------------- |
-| [김보담](https://github.com/qhdamm) |   |
-| [정회수](https://github.com/Hoesu)    | |
-| [최수현](https://github.com/imsuviiix)        |  |
-| [임채림](https://github.com/C-limlim)  |  |
-| [이동렬](https://github.com/prodong04)  |  |
-
+| [Kim Bodam](https://github.com/qhdamm)   |  |
+| [Jeong Hoesu](https://github.com/Hoesu)  |  |
+| [Choi Suhyun](https://github.com/imsuviiix)|  |
+| [Lim Chaerim](https://github.com/C-limlim)|  |
+| [Lee Dongryeol](https://github.com/prodong04)|  |
 
