@@ -9,15 +9,12 @@ class NaverSecuritiesStockSpider(scrapy.Spider):
 
     name = "stock"
     custom_settings = {
-    "FEEDS" : {
-        f"results/STOCK_{date.today().isoformat()}.jsonl": {"format": "jsonlines", "overwrite": True}
-    },
-    "ITEM_PIPELINES" : {
-        "crawler_agent.pipelines.ItemPipeline": 300
-    },
-    #"SPIDER_MIDDLEWARES" : {
-    #    "crawler_agent.middlewares.ScrapeOpsFakeBrowserHeaderAgentMiddleware": 543
-    #}
+        "FEEDS" : {
+            f"results/STOCK_{date.today().isoformat()}.jsonl": {"format": "jsonlines", "overwrite": True}
+        },
+        "ITEM_PIPELINES" : {
+            "crawler_agent.pipelines.ItemPipeline": 300
+        }
     }
 
     def __init__(self):
@@ -45,13 +42,12 @@ class NaverSecuritiesStockSpider(scrapy.Spider):
         reports = response.xpath("//tr[td[contains(@style, 'padding-left:10')]]")
         for report in reports:
             stock_item = StockItem()
-            stock_item['stock_name'] = report.xpath('./td[1]/a/text()').get()             ## 종목명
-            stock_item['ticker'] =  report.xpath('./td[1]/a/@href').get().split('=')[-1]  ## 종목코드
-            stock_item['title'] = report.xpath('./td[2]/a/text()').get()                  ## 제목
-            stock_item['source'] = report.xpath('./td[3]/text()').get()                   ## 제공출처
-            stock_item['file_url'] = report.xpath('./td[4]/a/@href').get()                ## 파일링크
-            stock_item['date'] = report.xpath('./td[5]/text()').get()                     ## 작성일
-            stock_item['summary'] = self.parse_pdf(stock_item['file_url'])                ## 요약
+            stock_item['stock_name'] = report.xpath('./td[1]/a/text()').get()
+            stock_item['ticker'] =  report.xpath('./td[1]/a/@href').get().split('=')[-1]
+            stock_item['title'] = report.xpath('./td[2]/a/text()').get()
+            stock_item['source'] = report.xpath('./td[3]/text()').get()
+            stock_item['file_url'] = report.xpath('./td[4]/a/@href').get()
+            stock_item['date'] = report.xpath('./td[5]/text()').get()
             yield stock_item
 
         next_page = response.xpath("//td[@class='on']/following-sibling::td[1]")
@@ -60,6 +56,3 @@ class NaverSecuritiesStockSpider(scrapy.Spider):
             yield response.follow(next_page_url, callback = self.parse)
         else:
             return
-
-    def parse_pdf(self, file_url: str) -> None:
-        return None

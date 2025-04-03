@@ -1,8 +1,3 @@
-# Define here the models for your scraped items
-#
-# See documentation in:
-# https://docs.scrapy.org/en/latest/topics/items.html
-
 import scrapy
 
 class MacroItem(scrapy.Item):
@@ -26,6 +21,10 @@ class MacroItem(scrapy.Item):
         serializer=str, 
         metadata={"description": "요약"}
     )
+    keyword = scrapy.Field(
+        serializer=str, 
+        metadata={"description": "키워드"}
+    )
 
 class SectorItem(scrapy.Item):
     title = scrapy.Field(
@@ -47,6 +46,10 @@ class SectorItem(scrapy.Item):
     summary = scrapy.Field(
         serializer=str, 
         metadata={"description": "요약"}
+    )
+    keyword = scrapy.Field(
+        serializer=str, 
+        metadata={"description": "키워드"}
     )
 
 class StockItem(scrapy.Item):
@@ -77,4 +80,8 @@ class StockItem(scrapy.Item):
     summary = scrapy.Field(
         serializer=str, 
         metadata={"description": "요약"}
+    )
+    keyword = scrapy.Field(
+        serializer=str, 
+        metadata={"description": "키워드"}
     )
