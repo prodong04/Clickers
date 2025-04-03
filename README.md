@@ -93,10 +93,10 @@ requirements.txt 파일에는 프로젝트에서 사용하는 모든 패키지�
 
 | GitHub ID                               | 역할                |
 | --------------------------------------- | ----------------- |
-| [@](https://github.com/qhdamm) |   |
-| [@](https://github.com/Hoesu)    | |
-| [@](https://github.com/suhyeon)        |  |
-| [@friend3](https://github.com/C-limlim)  |  |
-| [@friend4](https://github.com/prodong04)  |  |
+| [김보담](https://github.com/qhdamm) |   |
+| [정회수](https://github.com/Hoesu)    | |
+| [최수현](https://github.com/imsuviiix)        |  |
+| [임채림](https://github.com/C-limlim)  |  |
+| [이동렬](https://github.com/prodong04)  |  |
 
 
