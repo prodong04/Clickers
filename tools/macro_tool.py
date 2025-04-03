@@ -6,14 +6,27 @@ class MacroTool:
     """
     매크로 DB에서 지정된 날짜 범위 내의 최신 매크로 리포트를 가져온다.
     """
-    def __init__(self, db_client: mysql.connector.connection.MySQLConnection):
-        self.db_client = db_client
-
+    def __init__(self):
+        self.config = load_config(config_path='./config/config.yaml')
+        
     def run(self, start_date: str, end_date: str) -> Optional[dict]:
         """
         start_date와 end_date 기준으로 매크로 리포트를 조회합니다.
         가장 최신의 리포트를 반환합니다.
-        """
+        """        
+        # 데이터베이스 및 API 정보 불러오기
+        mysql_config = self.config['mysql']
+        mongo_config = self.config['mongo']
+        upstage_config = self.config['upstage']
+
+        # MySQL 데이터베이스 연결 설정
+        self.db_client = mysql.connector.connect(
+            user=mysql_config['user'],
+            password=mysql_config['password'],
+            host=mysql_config['host'],
+            port=mysql_config['port'],
+            database=mysql_config['database']
+        )
         query = """
             SELECT source, date, summary FROM macro_reports 
             WHERE date <= %s
@@ -53,4 +66,4 @@ if __name__ == "__main__":
     print("\n[Macro Report]")
     print(macro_report)
     
-    db_client.close()
+

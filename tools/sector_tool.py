@@ -7,6 +7,8 @@ from pathlib import Path
 import datetime
 from typing import List, Dict, Any, Tuple, Optional, Union
 from dotenv import load_dotenv
+import mysql.connector
+
 
 from openai import OpenAI
 from sqlalchemy import create_engine, text
@@ -15,6 +17,8 @@ from pymongo.mongo_client import MongoClient
 from pymongo.server_api import ServerApi
 import numpy as np
 from sklearn.metrics.pairwise import cosine_similarity
+from config.config_loader import load_config
+
 
 class SectorTool:
     """
@@ -26,7 +30,7 @@ class SectorTool:
     3. 벡터 검색을 통한 관련 섹터 리포트 조회
     4. 유사도 임계값 기반 필터링
     """
-    def __init__(self, mysql_url: str = None, mongo_url: str = None, upstage_api_key: str = None,
+    def __init__(self,
                  cache_dir: str = "./data/cache"):
         """
         SectorTool 초기화
@@ -38,6 +42,18 @@ class SectorTool:
             cache_dir: 임베딩 캐시 저장 디렉토리
         """
         # 캐시 디렉토리 설정 및 생성
+        config = load_config(config_path='./config/config.yaml')
+        
+        # 데이터베이스 및 API 정보 불러오기
+        mysql_config = config['mysql']
+        mongo_config = config['mongo']
+        upstage_config = config['upstage']
+
+
+        # URL 정보 추출
+        mysql_url = mysql_config['url']
+        mongo_url = mongo_config['url']
+        upstage_api_key = upstage_config['api_key']
         self.cache_dir = Path(cache_dir)
         self.cache_dir.mkdir(parents=True, exist_ok=True)
         self.embedding_cache = self.load_embedding_cache()

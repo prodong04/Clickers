@@ -24,26 +24,11 @@ analyst_agent = AnalystAgent(name="AnalystAgent", model_name="solar-pro", config
 critic_agent = CriticAgent(name="CriticAgent", model_name="solar-pro", config={})
 fund_manager_agent = FundManagerAgent(name="FundManagerAgent", model_name="solar-pro", config={})
 pdf_tool = PDFTool()
-
-config = load_config(config_path='./config/config.yaml')
-        
-# 데이터베이스 및 API 정보 불러오기
-mysql_config = config['mysql']
-mongo_config = config['mongo']
-upstage_config = config['upstage']
-
-# MySQL 데이터베이스 연결 설정
-db_client = mysql.connector.connect(
-    user=mysql_config['user'],
-    password=mysql_config['password'],
-    host=mysql_config['host'],
-    port=mysql_config['port'],
-    database=mysql_config['database']
-)
-       
+html_list = []
 
 
-def get_ticker(start_date, end_date)-> list:
+def get_ticker(start_date, end_date) -> list:
+    db_client = analyst_agent.db_client
     cursor = db_client.cursor(dictionary=True)
     query = """
         SELECT DISTINCT ticker, stock_name
@@ -52,13 +37,8 @@ def get_ticker(start_date, end_date)-> list:
     """
     cursor.execute(query, (start_date, end_date))
     result = cursor.fetchall()
-
-
+    cursor.close()
     return result
-
-
-
-
 
 # GraphState 정의 (각 티커별 상태)
 class GraphState(TypedDict):
@@ -79,16 +59,23 @@ def check_logic(state: GraphState) -> str:
     - "loop": 반복 필요 (피드백이 있고 승인되지 않은 경우)
     """
     state['iterate'] += 1  # 반복 횟수 증가
-    # 예시: 반복 횟수가 4회를 초과하면 종료
-    if state['iterate'] > 4:
+    print(f"[DEBUG] Iteration count: {state['iterate']}, Accepted: {state['accepted']}")  # 디버그 정보 출력
+    
+    if state['iterate'] > 3:  # 반복 횟수가 3 이상이면 무조건 종료
+        print("[DEBUG] Maximum iteration reached. Ending process.")
         return "end"
-    # 피드백이 존재하고 승인되지 않은 경우 반복
-    if state['feedback'] is not None and not state['accepted']:
+    
+    if state['accepted']:  # 승인된 경우 종료
+        print("[DEBUG] Report accepted. Ending process.")
+        return "end"
+    
+    if state['feedback'] is not None and not state['accepted']:  # 피드백이 있고, 아직 승인되지 않은 경우
+        print("[DEBUG] Feedback provided but not accepted. Looping process.")
         return "loop"
-    # 피드백이 없고 승인된 경우 종료
-    elif state['accepted']:
-        return "end"
-    return "loop"  # 기본적으로 반복
+    
+    print("[DEBUG] No feedback or not accepted. Looping process.")
+    return "loop"
+
 
 # AnalystAgent 실행 노드
 def analyst_agent_func(state: GraphState) -> GraphState:
@@ -113,124 +100,129 @@ def critic_agent_func(state: GraphState) -> GraphState:
         state["accepted"] = False
     else:
         state["accepted"] = True
+        # state["accepted"] = False
     print(f"[INFO] Critic report for {state['ticker']}: {critic_report}")
     return state
 
-# 워크플로우 구성: analyst와 critic 노드만 포함하는 피드백 루프
-workflow = StateGraph(GraphState)
-workflow.add_node('analyst', analyst_agent_func)
-workflow.add_node('critic', critic_agent_func)
-workflow.add_edge('analyst', 'critic')  # AnalystAgent의 보고서를 CriticAgent에 전달
+def run(start_date, end_date, investment_tendency):
+    # 워크플로우 구성: analyst와 critic 노드만 포함하는 피드백 루프
+    workflow = StateGraph(GraphState)
+    workflow.add_node('analyst', analyst_agent_func)
+    workflow.add_node('critic', critic_agent_func)
+    workflow.add_edge('analyst', 'critic')  # AnalystAgent의 보고서를 CriticAgent에 전달
 
-# Critic 노드에서 조건부 엣지를 통해 상태에 따라 analyst로 돌아갈지 결정
-workflow.add_conditional_edges('critic', 
-                               check_logic,
-                               {
-                                  "end": END,
-                                  "loop": 'analyst'
-                               })
-workflow.set_entry_point('analyst')  # 시작 노드 설정
+    # Critic 노드에서 조건부 엣지를 통해 상태에 따라 analyst로 돌아갈지 결정
+    workflow.add_conditional_edges('critic', 
+                                check_logic,
+                                {
+                                    "end": END,
+                                    "loop": 'analyst'
+                                })
+    workflow.set_entry_point('analyst')  # 시작 노드 설정
 
-app = workflow.compile()
+    app = workflow.compile()
 
-# 파라미터 설정
-start_date = "2025-03-21"
-end_date = "2025-03-28"
-risk_preference = "나는 아주 공격적인 투자자야. 리스크를 매우 선호하고, 그만큼 고수익을 원해."
-lookback = 200
+    # ===== 슬라이딩 윈도우 및 Lookback 파라미터 설정 =====
+    # loop_start_date = datetime.date(2025, 2, 1)
+    #2025-04-01
+    loop_start_date = datetime.datetime.strptime(start_date, "%Y-%m-%d")
+    # loop_end_date = datetime.date(2025, 3, 31)
+    loop_end_date = datetime.datetime.strptime(end_date, "%Y-%m-%d")
+    sliding_window_days = 3         # 슬라이딩 윈도우 기간: 7일
+    lookback_period = 3             # lookback 기간: 7일
+    risk_preference = investment_tendency
+    # "나는 아주 공격적인 투자자야. 리스크를 매우 선호하고, 그만큼 고수익을 원해."
 
-ge = get_ticker(start_date=start_date, end_date=end_date)
+    # 전체 실행 결과 저장을 위한 부모 디렉토리 생성
+    timestamp = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
+    parent_dir = os.path.join(os.getcwd(), f"run_{timestamp}")
+    os.makedirs(parent_dir, exist_ok=True)
+    print(f"[INFO] Created parent directory: {parent_dir}")
 
-# 테스트용 티커 목록
-ticker_list = sorted(pd.DataFrame(ge)['ticker'].tolist())
+    # ===== 슬라이딩 윈도우 루프 시작 =====
+    current_date = loop_start_date
+    while current_date <= loop_end_date:
+        # 현재 윈도우의 시작일과 종료일 계산 (종료일은 7일간의 윈도우, 종료일이 루프 종료일을 넘지 않도록 조정)
+        window_start = current_date
+        window_end = current_date + datetime.timedelta(days=sliding_window_days - 1)
+        if window_end > loop_end_date:
+            window_end = loop_end_date
 
-# 결과 저장 디렉토리 생성
-timestamp = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
-parent_dir = os.path.join(os.getcwd(), f"run_{timestamp}")
-os.makedirs(parent_dir, exist_ok=True)
-stock_dir = os.path.join(parent_dir, "stock")
-os.makedirs(stock_dir, exist_ok=True)
-print(f"[INFO] Created parent directory: {parent_dir}")
-print(f"[INFO] Created stock directory: {stock_dir}")
+        start_date_str = window_start.strftime("%Y-%m-%d")
+        end_date_str = window_end.strftime("%Y-%m-%d")
+        print(f"\n[INFO] Processing window: {start_date_str} to {end_date_str}")
 
-# 각 티커별 최종 Critic 보고서를 저장할 딕셔너리
-final_reports: Dict[str, dict] = {}
+        # 현재 윈도우 전용 출력 디렉토리 생성
+        window_dir = os.path.join(parent_dir, f"{start_date_str}_to_{end_date_str}")
+        os.makedirs(window_dir, exist_ok=True)
+        stock_dir = os.path.join(window_dir, "stock")
+        os.makedirs(stock_dir, exist_ok=True)
 
-# 각 티커별 analyst-critic 피드백 루프 실행
-for ticker in ticker_list:
-    print(f"\n[INFO] Processing ticker: {ticker}")
-    initial_state: GraphState = {
-        "ticker": ticker,
-        "context": {},
-        "feedback": None,
-        "risk_preference": risk_preference,
-        "lookback": lookback,
-        "start_date": start_date,
-        "end_date": end_date,
-        "accepted": False,
-        "iterate": 0
-    }
-    final_state = app.invoke(initial_state)
-    final_reports[ticker] = final_state["context"]
-    break  # 테스트를 위해 첫 티커만 처리
-breakpoint()
-# 루프 종료 후, FundManagerAgent에 최종 Critic 보고서를 전달하여 최종 판단 실행
-fund_manager_result = fund_manager_agent.run(final_reports, start_date, end_date)  
-print(f"[INFO] FundManagerAgent 최종 결과: {fund_manager_result}")
-# fund_manager_result = {
-#     "ticker": {
-#         "final_decision": True,
-#         "reason": "편입을 찬성합니다."
-#     }
-# }
-            
+        # 해당 기간의 티커 목록 조회
+        tickers_data = get_ticker(start_date=start_date_str, end_date=end_date_str)
+        ticker_list = sorted(pd.DataFrame(tickers_data)['ticker'].tolist()) if tickers_data else []
+        
+        # 각 티커별 최종 Critic 보고서를 저장할 딕셔너리
+        final_reports: Dict[str, dict] = {}
 
-# 각 티커별로 Critic 보고서를 PDF로 생성
-for ticker, _ in fund_manager_result.items():
-    analyst_report = final_reports[ticker]
-    ticker_pdf_filename = os.path.join(stock_dir, f"{ticker}_critic_report.pdf")
-    critic_content = analyst_report.get("analysis", "최종 보고서")
-    pdf_result = pdf_tool.run(
-        report_data=critic_content,
-        filename=ticker_pdf_filename,
-        report_type="critic"
-    )
-    print(f"[INFO] Report PDF generated for {ticker}: {pdf_result}")
+        # 각 티커에 대해 analyst-critic 피드백 루프 실행
+        for ticker in ticker_list:
+            print(f"\n[INFO] Processing ticker: {ticker}")
+            initial_state: GraphState = {
+                "ticker": ticker,
+                "context": {},
+                "feedback": None,
+                "risk_preference": risk_preference,
+                "lookback": lookback_period,
+                "start_date": start_date_str,
+                "end_date": end_date_str,
+                "accepted": False,
+                "iterate": 0
+            }
+            final_state = app.invoke(initial_state)
+            final_reports[ticker] = final_state["context"]
+            # 테스트를 위해 하나의 티커만 처리하고 싶다면 아래 break를 활성화하세요.
+            break
+        
+        # 슬라이딩 윈도우별 FundManagerAgent 실행
+        fund_manager_result = fund_manager_agent.run(final_reports, start_date_str, end_date_str)  
+        print(f"[INFO] FundManagerAgent 최종 결과 for window {start_date_str} to {end_date_str}: {fund_manager_result}")
+        # 각 티커별 Critic 보고서를 PDF로 생성
+        
+        for ticker, report_data in final_reports.items():
+            analyst_report = report_data
+            ticker_pdf_filename = os.path.join(stock_dir, f"{ticker}_critic_report.html")
+            html_list.append(ticker_pdf_filename)
+            critic_content = analyst_report.get("analysis", "최종 보고서")
+            pdf_result = pdf_tool.run(
+                report_data=critic_content,
+                filename=ticker_pdf_filename,
+            )
+            print(f"[INFO] Report PDF generated for {ticker}: {pdf_result}")
+        break
 
-# 전체 최종 결과를 JSON 파일로 저장 (펀드매니저 최종 결과 포함)
-report_json = {
-    "analyst_reports": final_reports,
-    "fund_manager_result": fund_manager_result
-}
-report_json_filename = os.path.join(parent_dir, "final_reports.json")
-with open(report_json_filename, "w", encoding="utf-8") as f:
-    json.dump(report_json, f, ensure_ascii=False, indent=4)
-print(f"[INFO] Saved final reports as JSON: {report_json_filename}")
+        # 윈도우 결과를 JSON 파일로 저장
+        report_json = {
+            "analyst_reports": final_reports,
+            "fund_manager_result": fund_manager_result
+        }
+        report_json_filename = os.path.join(window_dir, "final_reports.json")
+        with open(report_json_filename, "w", encoding="utf-8") as f:
+            json.dump(report_json, f, ensure_ascii=False, indent=4)
+        print(f"[INFO] Saved final reports as JSON: {report_json_filename}")
 
-# 종목 리스트를 end_date 이름으로 폴더 생성
-output_folder = os.path.join(parent_dir, end_date)
-os.makedirs(output_folder, exist_ok=True)
-print(f"[INFO] Created folder for saving CSV files: {output_folder}")
+        # 각 윈도우별 티커 리스트를 CSV 파일로 저장 (end_date 이름의 폴더 생성)
+        output_folder = os.path.join(window_dir, end_date_str)
+        os.makedirs(output_folder, exist_ok=True)
+        df = pd.DataFrame({'value': list(final_reports.keys())})
+        df.index = [end_date_str] * len(final_reports)
+        df.index.name = 'index'
+        csv_file_path = os.path.join(output_folder, f"{end_date_str}.csv")
+        df.to_csv(csv_file_path, index=True, encoding='utf-8-sig')
+        print(f"[INFO] Saved CSV file: {csv_file_path}")
 
-tickers = list(final_reports.keys())
+        # 다음 슬라이딩 윈도우로 이동
+        current_date += datetime.timedelta(days=sliding_window_days)
 
-# 데이터프레임 생성 (각 종목 티커를 value로 저장)
-df = pd.DataFrame({
-    'value': tickers
-})
-df.index = [end_date] * len(tickers)  # 인덱스를 end_date로 설정
-df.index.name = 'index'
 
-# CSV 파일 저장 경로 설정
-csv_file_path = os.path.join(output_folder, f"{end_date}.csv")
-
-# CSV 파일로 저장
-df.to_csv(csv_file_path, index=True, encoding='utf-8-sig')
-print(f"[INFO] Saved CSV file: {csv_file_path}")
-
-# 워크플로우 그래프 시각화 (옵션)
-graph_png = workflow.get_graph(xray=True).draw_mermaid_png()
-graph_png_filename = os.path.join(parent_dir, "workflow_graph.png")
-with open(graph_png_filename, "wb") as f:
-    f.write(graph_png)
-print(f"[INFO] Saved workflow graph visualization as PNG: {graph_png_filename}")
+    return html_list

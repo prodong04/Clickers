@@ -269,36 +269,11 @@ class FinancialTool:
         
         self.reports = get_recent_three_reports(self.base_date)
         
-        connection = pymysql.connect(
-            host='34.28.14.97',
-            port=3306,
-            user='agent-member',
-            password='ybigta2024!',
-            database='alpha_agent',
-            charset='utf8mb4'
-        )
         
         summary = self.generate_summary()
         summary_text = json.dumps(summary, ensure_ascii=False)
         file_name = f"{self.company_name}_{self.reports[0]['year']}년_{self.reports[0]['quarter']}분기_재무제표"
-
-        try:
-            with connection.cursor() as cursor:
-                query = """
-                    INSERT INTO funst_summary (stock_name, ticker, date, year, quarter, summary, file_list)
-                    VALUES (%s, %s, %s, %s, %s, %s, %s)
-                """
-                values = (self.company_name, self.ticker, self.base_date, self.reports[0]['year'], self.reports[0]['quarter'], summary_text, file_name)
-                cursor.execute(query, values)
-                connection.commit()
-                logger.info(f"{self.company_name}({self.ticker})의 {self.base_date} 일자 데이터가 성공적으로 적재되었습니다.")
-                return summary
-        except Exception as e:
-            logger.error(f"DB 적재 중 에러 발생: {e}")
-            return summary
-        finally:
-            connection.close()
-            logger.info("DB 연결이 닫혔습니다.")
+        return summary_text, file_name
         
         
 

@@ -6,8 +6,12 @@ class StockTool:
     """
     특정 종목 리포트(DB1)에 대한 요약/검색/조회 기능.
     """
-    def __init__(self, db_client: mysql.connector.connection.MySQLConnection):
-        self.db_client = db_client
+    def __init__(self):
+        self.config = load_config(config_path='./config/config.yaml')
+        
+        # 데이터베이스 및 API 정보 불러오기
+
+        
 
     def run(self, ticker: str, start_date: str, end_date: str) -> List[dict]:
         """
@@ -21,6 +25,16 @@ class StockTool:
         Returns:
             List[dict]: 조회된 리포트의 목록
         """
+        mysql_config = self.config['mysql']
+
+        # MySQL 데이터베이스 연결 설정
+        self.db_client = mysql.connector.connect(
+            user=mysql_config['user'],
+            password=mysql_config['password'],
+            host=mysql_config['host'],
+            port=mysql_config['port'],
+            database=mysql_config['database']
+        )
         query = """
             SELECT ticker, stock_name, title, source, DATE_FORMAT(date, '%Y-%m-%d') AS date, summary FROM stock_reports 
             WHERE ticker = %s
@@ -64,4 +78,4 @@ if __name__ == '__main__':
     print("\n[Stock_Report]")
     print(stock_report)
     
-    db_client.close()
+

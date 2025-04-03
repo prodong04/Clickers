@@ -20,6 +20,7 @@ class PriceTool:
         종목의 가격 데이터, 통계, 및 분석 결과를 텍스트로 반환합니다.
         """
         end_date = pd.to_datetime(date)
+        lookback = 200
         start_date = end_date - pd.DateOffset(days=lookback)
         ticker = f"{ticker}.KS"
 
@@ -33,6 +34,8 @@ class PriceTool:
             return {"message": f"{start_date.date()} ~ {end_date.date()} 기간 동안 {ticker}의 가격 데이터를 찾을 수 없습니다."}
 
         # 종가 및 거래량 데이터
+
+
         close_prices = df["Close"]
         volume = df["Volume"]
         pct_change = close_prices.pct_change()
