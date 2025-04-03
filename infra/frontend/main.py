@@ -1,6 +1,7 @@
 import streamlit as st
 import datetime
 import time
+import requests
 
 # 세션 상태 초기화
 if "reset_token" not in st.session_state:
@@ -85,6 +86,20 @@ if st.button("포트폴리오 추천 보고서 요청하기"):
         with st.spinner(f"{start_date} ~ {end_date} 기간의 리포트 작성 요청 중..."):
             time.sleep(2.5)
         st.session_state["show_modal"] = True
+        
+        payload = {
+            "start_date": str(start_date),
+            "end_date": str(end_date),
+            "user_tendency": st.session_state[tendency_key],
+            "email": st.session_state[email_key],
+        }
+        
+        try:
+            response = requests.post("http://127.0.0.1:8000/run-report/", data=payload)
+        except Exception as e:
+            print(e)
+            pass
+        
         st.rerun()
 
 # 모달 출력
@@ -96,8 +111,8 @@ if st.session_state["show_modal"]:
         <div class="modal">
             <div class="modal-box">
                 <h1>🎉 리포트 요청 완료!</h1>
-                <p>입력한 이메일로 곧 보내드릴게요 ✨📩</p>
-                <small>이 화면이 닫히지 않는다면 새로고침(F5)해주세요 💡</small>
+                <p>완성되는 순간 이메일로 전송 예정 ✨📩</p>
+                <small>5초 후 새로고침돼요! 먄약 사라지지 않으면 F5클릭💡</small>
             </div>
         </div>
         """,
