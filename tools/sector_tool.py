@@ -529,7 +529,7 @@ class SectorTool:
             검색된 섹터 summary 문자열들의 리스트
         """
         
-        self.import_sector_reports_to_mongodb(days_lookback=days_lookback)
+        sectortool.import_sector_reports_to_mongodb(days_lookback=days_lookback)
 
         results = self.retrieve_top_k_sector_summaries(
             ticker, 
@@ -564,7 +564,8 @@ if __name__ == "__main__":
     
     print(f"\n{stock_display}와(과) 관련된 섹터 리포트를 검색합니다...")
     summaries = sectortool.run(example_ticker, top_k=5, days_ago=14, days_lookback=14, score_threshold=0.4)
+    print(summaries)
     
-    print(f"\n{stock_display} 관련 섹터 리포트 ({len(summaries)}개):")
-    for idx, summary in enumerate(summaries, start=1):
-        print(f"\n[{idx}]\n{summary[:400]}...")
+    # print(f"\n{stock_display} 관련 섹터 리포트 ({len(summaries)}개):")
+    # for idx, summary in enumerate(summaries, start=1):
+    #     print(f"\n[{idx}]\n{summary[:400]}...")
