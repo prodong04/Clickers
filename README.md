@@ -86,17 +86,5 @@ requirements.txt 파일에는 프로젝트에서 사용하는 모든 패키지�
 
 ---
 
-## 🌟 Contributors
 
-이 프로젝트는 연세대학교 X Upstage Agent Hackathon 딸깍원정대 팀의 프로젝트입니다.
-
-아래는 프로젝트 기여자들입니다. 모두에게 감사드립니다! 💪🚀
-
-| GitHub ID                               | 역할                |
-| --------------------------------------- | ----------------- |
-| [@](https://github.com/qhdamm) |   |
-| [@](https://github.com/hoesu)    | |
-| [@](https://github.com/suhyeon)        |  |
-| [@friend3](https://github.com/C-limlim)  |  |
-| [@friend4](https://github.com/prodong04)  |  |
 
