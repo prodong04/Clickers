@@ -1,3 +1,3 @@
-./config
+config/config.yaml
 .env
 __pycache__/
