@@ -94,9 +94,9 @@ requirements.txt 파일에는 프로젝트에서 사용하는 모든 패키지�
 
 | GitHub ID                               | 역할                |
 | --------------------------------------- | ----------------- |
-| [@](https://github.com/prodong04)qhdamm |   |
-| [@](https://github.com/friend1)hoesu    | |
-| [@](https://github.com/friend2)         |  |
-| [@friend3](https://github.com/friend3)  |  |
-| [@friend4](https://github.com/friend4)  |  |
+| [@](https://github.com/qhdamm) |   |
+| [@](https://github.com/hoesu)    | |
+| [@](https://github.com/suhyeon)        |  |
+| [@friend3](https://github.com/C-limlim)  |  |
+| [@friend4](https://github.com/prodong04)  |  |
 
