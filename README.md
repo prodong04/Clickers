@@ -94,7 +94,7 @@ Here are the contributors to this project. Thank you all! 💪🚀
 | --------------------------------------- | ----------------- |
 | [Kim Bodam](https://github.com/qhdamm)   |  |
 | [Jeong Hoesu](https://github.com/Hoesu)  |  |
-| [Choi Suhyun](https://github.com/imsuviiix)|  |
+| [Choe Suhyun](https://github.com/imsuviiix)|  |
 | [Lim Chaerim](https://github.com/C-limlim)|  |
 | [Lee Dongryeol](https://github.com/prodong04)|  |
 
